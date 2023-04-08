@@ -1,6 +1,11 @@
-import { index } from './src/game';
+import { Jumpingjack } from './src/game';
 
 export const canvas = <HTMLCanvasElement>document.getElementById('gamecanvas');
-export const ctx = canvas.getContext('2d');
 
-new index(canvas, <HTMLElement>document.getElementById('HUD'), ctx);
+new Jumpingjack({
+  element: canvas,
+  context: canvas.getContext('2d'),
+  width: 50,
+  height: 50,
+  HUD: <HTMLElement>document.getElementById('HUD'),
+});

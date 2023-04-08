@@ -1,21 +1,15 @@
-export class index {
+export class Jumpingjack {
   gobj: gameobjects;
   logic: logics;
-  constructor(canvas_, HUD, ctx_) {
-    const canvas = canvas_;
-    const gamespec = HUD;
-    this.gobj = new gameobjects(canvas, gamespec);
-    this.logic = new logics(this.gobj, ctx_);
+
+  constructor(canvas_) {
+    this.logic = new logics(new gameobjects(canvas_));
   }
 }
 
 class logics {
   interval = null;
-  constructor(
-    private gobject: gameobjects,
-    private ctx: CanvasRenderingContext2D
-  ) {
-    console.log(this.ctx);
+  constructor(private gobject: gameobjects) {
     this.frameupdate();
     const inputAction = () => {
       if (!gobject.game.over) this.actions.jump();
@@ -44,13 +38,12 @@ class logics {
     this.interval && clearInterval(this.interval);
     const newinterval =
       1000 / (this.gobject.game.speed + this.gobject.game.score);
-    console.log(newinterval);
     this.interval = setInterval(() => this.update(this.gobject), newinterval);
   }
 
   frameupdate() {
     requestAnimationFrame(() => this.frameupdate());
-    if (this.ctx) {
+    if (this.gobject.canvas.context) {
       this.render(this.gobject);
     }
   }
@@ -58,8 +51,10 @@ class logics {
   actions = {
     jump: () => {
       const { player } = this.gobject;
-      player.actions.jump.done && (player.actions.jump.done = false);
-      player.actions.jump.y = -50;
+      if (player.actions.jump.done) {
+        player.actions.jump.done = false;
+        player.actions.jump.y = -50;
+      }
     },
     jumpstate: () => {
       const { player, canvas } = this.gobject;
@@ -113,12 +108,12 @@ class logics {
     updatespec: (gameover) => {
       if (gameover) {
         this.gobject.game.over = true;
-        this.gobject.game.spec.innerText = `GAME-OVER | score:${this.gobject.game.score} | highscore:${this.gobject.game.highscore}`;
+        this.gobject.canvas.HUD.innerText = `GAME-OVER | score:${this.gobject.game.score} | highscore:${this.gobject.game.highscore}`;
         return;
       }
       this.gobject.game.score > this.gobject.game.highscore &&
         (this.gobject.game.highscore = this.gobject.game.score);
-      this.gobject.game.spec.innerText = `score:${this.gobject.game.score} | highscore:${this.gobject.game.highscore}`;
+      this.gobject.canvas.HUD.innerText = `score:${this.gobject.game.score} | highscore:${this.gobject.game.highscore}`;
     },
   };
 
@@ -142,12 +137,12 @@ class logics {
   }
 
   render({ canvas, player, obstacle }: gameobjects) {
-    this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.context.clearRect(0, 0, canvas.width, canvas.height);
     const drawplayer = (player) => {
       player.pixels.forEach((rows, i) => {
         rows.forEach((pixel, j) => {
           pixel &&
-            this.ctx.fillRect(
+            canvas.context.fillRect(
               player.x + j,
               player.y + i,
               player.width,
@@ -158,16 +153,24 @@ class logics {
     };
     drawplayer(player);
     obstacle.container.forEach((e) =>
-      this.ctx.fillRect(e.x, e.y, e.width, e.height)
+      canvas.context.fillRect(e.x, e.y, e.width, e.height)
     );
   }
 }
 
 class gameobjects {
-  constructor(canvas, gamespec) {
-    this.canvas.element = canvas;
-    this.canvas.context = canvas.getContext('2d');
-    this.game.spec = gamespec;
+  constructor(canvas: {
+    element: any;
+    context: CanvasRenderingContext2D;
+    width: number;
+    height: number;
+    HUD: HTMLElement;
+  }) {
+    this.canvas = { ...this.canvas, ...canvas };
+    [canvas.element.width, canvas.element.height] = [
+      this.canvas.width,
+      this.canvas.height,
+    ];
     this.player.pixels = this.parser.topixels(this.player.pixelcode);
   }
 
@@ -214,8 +217,9 @@ class gameobjects {
     context: null,
     x: 0,
     y: 0,
-    width: 50,
-    height: 50,
+    width: 0,
+    height: 0,
+    HUD: null,
   };
   player = {
     initialpos: { x: 10, y: 40, width: 1, height: 1 },

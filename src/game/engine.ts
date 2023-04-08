@@ -1,10 +1,9 @@
-import { canvas } from "../index";
-import { gameobjects, reset } from "./gameobjects";
+import { gameobjects, reset } from './gameobjects';
 export class engine {
   constructor() {
-    window.addEventListener("keydown", this.keydown);
-    document.addEventListener("mouseenter", this.mousein);
-    document.addEventListener("mouseout", this.mouseout);
+    window.addEventListener('keydown', this.keydown);
+    document.addEventListener('mouseenter', this.mousein);
+    document.addEventListener('mouseout', this.mouseout);
     // fromEvent(document, "keydown").subscribe(this.keydown);
   }
 
@@ -13,7 +12,7 @@ export class engine {
   }
 
   mousein() {
-    canvas.style.transform = "scale(1)";
+    canvas.style.transform = 'scale(1)';
     gameobjects.game.idle = false;
     // alert();
     canvas.click();
